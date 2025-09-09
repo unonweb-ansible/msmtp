@@ -1,0 +1,13 @@
+---
+msmtp:
+  mailbox:
+    pw:
+  files:
+    aliases:
+      src:
+    mailrc:
+      src: mail.rc
+  templates:
+    msmtprc:
+      src:
+      mode: "u=rw,g=r,o=r"

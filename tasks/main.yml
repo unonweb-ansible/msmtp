@@ -1,0 +1,75 @@
+---
+# NOTES
+# -----
+# echo -e "Test Body" | sudo mail -s "Test subject" "strato-report@freenet.de"
+
+- name: msmtp role
+  tags:
+  - msmtp
+  block:
+  - name: Install mail packages
+    when: true
+    become: true
+    ansible.builtin.apt:
+      state: present
+      name:
+      - mailutils
+      - msmtp
+      - msmtp-mta
+      - bsd-mailx
+
+  # remove other mtas
+  - name: Remove other MTAs
+    become: true
+    ansible.builtin.apt:
+      state: absent
+      autoremove: yes
+      purge: yes
+      name:
+      - exim4*
+      - postfix*
+      - sendmail*
+
+  # template msmtprc
+  - when: msmtp.templates.msmtprc.src != None
+    name: Template msmtprc
+    become: true
+    notify: Restart msmtpd.service
+    ansible.builtin.template:
+      src: "{{ msmtp.templates.msmtprc.src }}"
+      dest: /etc/msmtprc
+      owner: root
+      group: root
+      mode: "{{ msmtp.templates.msmtprc.mode }}"
+
+  # cp aliases
+  - when: msmtp.files.aliases.src != None
+    name: Copy aliases
+    become: true
+    notify: Restart msmtpd.service
+    ansible.builtin.copy:
+      src: "{{ msmtp.files.aliases.src }}"
+      dest: /etc/aliases
+      owner: root
+      group: root
+      mode: "u=rw,g=r,o=r"
+
+  # cp mail.rc
+  - when: msmtp.files.mailrc.src != None
+    name: Copy {{ msmtp.files.mailrc.src }}
+    become: true
+    notify: Restart msmtpd.service
+    ansible.builtin.copy:
+      src: "{{ msmtp.files.mailrc.src }}"
+      dest: /etc/mail.rc
+      owner: root
+      group: root
+      mode: "u=rw,g=r,o=r"
+
+  # start/enable service
+  - name: Start/Enable msmtpd.service
+    become: true
+    ansible.builtin.service:
+      name: msmtpd
+      state: started
+      enabled: true

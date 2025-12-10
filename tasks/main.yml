@@ -1,12 +1,16 @@
 ---
-# NOTES
-# -----
-# echo -e "Test Body" | sudo mail -s "Test subject" "strato-report@freenet.de"
-
 - name: msmtp role
   tags:
   - msmtp
   block:
+
+  # assert
+  - name: Assertions for role msmtp
+    ansible.builtin.assert:
+      that:
+        - msmtp_msmtprc_template != None
+
+  # apt
   - name: Install mail packages
     when: true
     become: true
@@ -23,44 +27,43 @@
     become: true
     ansible.builtin.apt:
       state: absent
-      autoremove: yes
-      purge: yes
+      autoremove: true
+      purge: true
       name:
       - exim4*
       - postfix*
       - sendmail*
 
   # template msmtprc
-  - when: msmtp.templates.msmtprc.src != None
-    name: Template msmtprc
+  - name: Template msmtprc
     become: true
     notify: Restart msmtpd.service
     ansible.builtin.template:
-      src: "{{ msmtp.templates.msmtprc.src }}"
+      src: "{{ msmtp_msmtprc_template }}"
       dest: /etc/msmtprc
       owner: root
       group: root
-      mode: "{{ msmtp.templates.msmtprc.mode }}"
+      mode: "{{ msmtp_msmtprc_mode }}"
 
   # cp aliases
-  - when: msmtp.files.aliases.src != None
+  - when: msmtp_aliases != None
     name: Copy aliases
     become: true
     notify: Restart msmtpd.service
     ansible.builtin.copy:
-      src: "{{ msmtp.files.aliases.src }}"
+      src: "{{ msmtp_aliases }}"
       dest: /etc/aliases
       owner: root
       group: root
       mode: "u=rw,g=r,o=r"
 
   # cp mail.rc
-  - when: msmtp.files.mailrc.src != None
-    name: Copy {{ msmtp.files.mailrc.src }}
+  - when: msmtp_mailrc != None
+    name: Copy {{ msmtp_mailrc }}
     become: true
     notify: Restart msmtpd.service
     ansible.builtin.copy:
-      src: "{{ msmtp.files.mailrc.src }}"
+      src: "{{ msmtp_mailrc }}"
       dest: /etc/mail.rc
       owner: root
       group: root
@@ -69,7 +72,7 @@
   # start/enable service
   - name: Start/Enable msmtpd.service
     become: true
-    ansible.builtin.service:
-      name: msmtpd
+    ansible.builtin.systemd_service:
+      name: msmtpd.service
       state: started
       enabled: true

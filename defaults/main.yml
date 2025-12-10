@@ -1,13 +1,16 @@
 ---
-msmtp:
-  mailbox:
-    pw:
-  files:
-    aliases:
-      src:
-    mailrc:
-      src: mail.rc
-  templates:
-    msmtprc:
-      src:
-      mode: "u=rw,g=r,o=r"
+msmtp_mailrc: # -> /etc/mail.rc
+msmtp_aliases: # -> /etc/aliases
+msmtp_msmtprc_template: msmtprc.j2 # -> /etc/msmtprc
+msmtp_msmtprc_mode: "u=rw,g=r,o=r"
+msmtp_msmtprc_default_account:
+msmtp_msmtprc_accounts: [] # list of dicionaries
+# account:
+# host:
+# port: 587
+# tls: "on" # <- must be a string!
+# tls_starttls: "on" # <- must be a string!
+# auth: "on" # <- must be a string!
+# user:
+# from:
+# password:

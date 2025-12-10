@@ -1,0 +1,30 @@
+# {{ ansible_managed }}
+
+# Default settings that all others accounts inherit
+defaults
+port            25
+tls             on
+tls_starttls    off
+tls_certcheck   on
+tls_trust_file  /etc/ssl/certs/ca-certificates.crt
+syslog          LOG_USER
+
+{% if msmtp_msmtprc_accounts is defined %}
+{% for item in msmtp_msmtprc_accounts %}
+# {{item.account}}
+host			{{item.host}}
+account			{{item.account}}
+port			{{item.port}}
+tls				{{item.tls}}
+tls_starttls	{{item.tls_starttls}}
+auth			{{item.auth}}
+password		{{item.password}}
+from			{{item.from}}
+user			{{item.user}}
+{% endfor %}
+{% endif %}
+
+# Default account to use
+account default : {{msmtp_msmtprc_default_account}}
+
+aliases /etc/aliases
